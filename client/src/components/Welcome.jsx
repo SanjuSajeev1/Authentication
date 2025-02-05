@@ -21,7 +21,6 @@ const Header = () => {
       <h2 className="text-3xl sm:text-5xl font-semibold mb-4">
         Welcome {userData?.name}
       </h2>
-      <p className="mb-8 max-w-md">Get stred</p>
     </div>
   );
 };
