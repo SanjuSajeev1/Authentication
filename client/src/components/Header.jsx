@@ -18,7 +18,9 @@ const Header = () => {
         Hey, Developer !
         <img className="w-8 aspect-square" src={assets.bat} alt="Wave" />
       </h1>
-      <h2 className="text-3xl sm:text-5xl font-semibold mb-4">Welcome User</h2>
+      <h2 className="text-3xl sm:text-5xl font-semibold mb-4">
+        Welcome User!!!!!!
+      </h2>
       <p className="mb-8 max-w-md">
         Login to our app and get started with amazing features!
       </p>
