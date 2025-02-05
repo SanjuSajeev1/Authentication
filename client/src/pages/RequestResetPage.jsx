@@ -11,23 +11,56 @@ const RequestResetPage = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // const onSubmitEmail = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!email.trim()) {
+  //     toast.error("Please enter a valid email address.");
+  //     return;
+  //   }
+
+  //   navigate("/verify-otp", { state: { email } });
+
+  //   try {
+
+  //     axios.post(`${backendUrl}/api/auth/send-reset-otp`, { email });
+  //   } catch (error) {
+
+  //     toast.error(error.response?.data?.message || "Something went wrong!");
+  //   }
+  // };
+
   const onSubmitEmail = async (e) => {
     e.preventDefault();
 
+    // Check if the email is empty or invalid
     if (!email.trim()) {
       toast.error("Please enter a valid email address.");
       return;
     }
 
-    // Navigate to OTP verification page immediately
-    navigate("/verify-otp", { state: { email } });
+    // Set loading state to true
+    setLoading(true);
 
     try {
-      // Send API request without waiting for response
-      axios.post(`${backendUrl}/api/auth/send-reset-otp`, { email });
+      // First, check if the email exists in the database
+      const response = await axios.post(`${backendUrl}/api/auth/check-email`, {
+        email,
+      });
+
+      if (response.data.exists) {
+        // If the email exists, navigate to the OTP page
+        navigate("/verify-otp", { state: { email } });
+      } else {
+        // If the email does not exist, show an error message
+        toast.error("This email is not registered.");
+      }
     } catch (error) {
-      // Show error if request fails (optional)
+      // Handle errors
       toast.error(error.response?.data?.message || "Something went wrong!");
+    } finally {
+      // Reset loading state after the request is complete
+      setLoading(false);
     }
   };
 
