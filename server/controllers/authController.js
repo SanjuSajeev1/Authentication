@@ -1,98 +1,3 @@
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import userModel from "../models/userModel.js";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-
-// export const register = async (req, res) => {
-//   const { name, email, password } = req.body;
-
-//   if (!name || !email || !password) {
-//   }
-//   return res.json({ succes: false, message: "Invalid credentials" });
-// };
-
-// try {
-//   const existingUser = await userModel.findOne({ email });
-//   if (existingUser) {
-//     return res.json({ succes: false, message: "user already exist" });
-//   }
-//   const hashedPassword = await bcrypt.hash(password, 10);
-//   const user = new userModel({ name, email, password: hashedPassword });
-//   await user.save();
-
-//   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-//     expiresIn: "7d",
-//   });
-
-//   res.cookie("token", token, {
-//     httpOnly: true,
-//     secure: process.env.NODE_ENV === "production",
-//     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-//     maxAge: 7 * 24 * 60 * 60 * 1000,
-//   });
-// } catch (error) {
-//   res.json({ succes: false, message: error.message });
-// }
-
-// export const login = async (req, res) => {
-//   const { email, password } = req.body;
-
-//   if (!email || !password) {
-//     return res.json({
-//       succes: false,
-//       message: "Email and password are required",
-//     });
-//   }
-//   try {
-//     const user = await userModel.findOne({ email });
-
-//     if (!user) {
-//       return res.json({ succes: false, message: "Invalid email" });
-//     }
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-
-//     if (!isMatch) {
-//       return res.json({ succes: false, message: "Invalid password" });
-//     }
-
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-//       expiresIn: "7d",
-//     });
-
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//     });
-
-//     return res.json({ succes: true });
-//   } catch (error) {
-//     return res.json({
-//       succes: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
-// export const logout = async (req, res) => {
-//   try {
-//     res.clearCookie(
-//       ("token",
-//       token,
-//       {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === "production",
-//         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-//       })
-//     );
-//     res.json({ succes: true, message: "logged Out" });
-//   } catch (error) {}
-// };
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
@@ -219,25 +124,18 @@ export const sendVerifyOtp = async (req, res) => {
     // Find the user by userId
     const user = await userModel.findById(userId);
 
-    // Check if user exists
-    // if (!user) {
-    //   return res.json({ success: false, message: "User not found" });
-    // }
-
-    // Check if account is already verified
     if (user.isAccountVerified) {
       return res.json({ success: false, message: "Account already verified" });
     }
 
-    // Generate a random 5-digit OTP
+    //  OTP
     const otp = String(Math.floor(10000 + Math.random() * 90000));
 
-    // Save OTP and expiry time in the user document
+    // exp time
     user.verifyOtp = otp;
     user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    // Set up email options
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: user.email,
@@ -284,8 +182,8 @@ export const verifyEmail = async (req, res) => {
 
     // OTP is correct, verify the account
     user.isAccountVerified = true;
-    user.verifyOtp = ""; // Clear OTP
-    user.verifyOtpExpireAt = 0; // Clear OTP expiration time
+    user.verifyOtp = "";
+    user.verifyOtpExpireAt = 0;
     await user.save();
 
     res.json({ success: true, message: "Account successfully verified" });
@@ -294,7 +192,7 @@ export const verifyEmail = async (req, res) => {
 
     // Save OTP and expiry time in the user document
     user.verifyOtp = otp;
-    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // OTP expires in 24 hours
+    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
     // Set up email options
@@ -335,7 +233,7 @@ export const sendResetOtp = async (req, res) => {
     const otp = String(Math.floor(10000 + Math.random() * 90000));
 
     user.resetOtp = otp;
-    user.resetOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // OTP expires in 24 hours
+    user.resetOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
     // Set up email options
@@ -354,132 +252,16 @@ export const sendResetOtp = async (req, res) => {
   } catch (error) {}
 };
 
-// export const verifyResetOtp = async (req, res) => {
-//   const { email, otp } = req.body;
-
-//   try {
-//     // Find user by email
-//     const user = await userModel.findOne({ email });
-
-//     if (!user) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "User not found" });
-//     }
-
-//     // Compare entered OTP with stored OTP
-//     if (user.ResetOtp !== otp) {
-//       return res.status(400).json({ success: false, message: "InvalidP" });
-//     }
-
-//     // OTP is valid, proceed with reset
-//     return res.status(200).json({ success: true, message: "OTP verified" });
-//   } catch (error) {
-//     return res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
-
-//reset pass
-
-// export const resetPassword = async (req, res) => {
-//   const { email, otp, newPassword } = req.body;
-
-//   if (!email || !otp || !newPassword) {
-//     return res.json({
-//       success: false,
-//       message: "Email, OTP, and new password are required",
-//     });
-//   }
-
-//   try {
-//     const user = await userModel.findOne({ email });
-//     if (!user) {
-//       return res.json({ success: false, message: "User not found" });
-//     }
-
-//     if (user.resetOtp === "" || user.resetOtp !== otp) {
-//       return res.json({ success: false, message: "Invalid OTP2" });
-//     }
-
-//     if (user.resetOtpExpireAt < Date.now()) {
-//       return res.json({ success: false, message: "OTP expired" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
-//     user.password = hashedPassword;
-//     user.resetOtp = "";
-//     user.resetOtpExpireAt = 0;
-
-//     await user.save();
-
-//     return res.json({
-//       success: true,
-//       message: "Password changed successfully",
-//     });
-//   } catch (error) {
-//     console.error("Error in resetPassword:", error);
-//     return res.json({ success: false, message: error.message });
-//   }
-// };
-
-// export const resetPassword = async (req, res) => {
-//   const { email, otp, newPassword } = req.body;
-
-//   console.log("Received request for password reset:", { email, otp });
-
-//   if (!email || !otp || !newPassword) {
-//     return res.json({
-//       success: false,
-//       message: "Email, OTP, and new password are required",
-//     });
-//   }
-
-//   try {
-//     const user = await userModel.findOne({ email });
-//     if (!user) {
-//       console.log("User not found for email:", email);
-//       return res.json({ success: false, message: "User not found" });
-//     }
-
-//     if (user.resetOtp === "" || user.resetOtp !== otp) {
-//       console.log("Invalid OTP:", otp, "Expected:", user.resetOtp);
-//       return res.json({ success: false, message: "Invalid OTP2" });
-//     }
-
-//     if (user.resetOtpExpireAt < Date.now()) {
-//       console.log("OTP expired for user:", email);
-//       return res.json({ success: false, message: "OTP expired" });
-//     }
-
-//     console.log("Resetting password for:", email);
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
-//     user.password = hashedPassword;
-//     user.resetOtp = "";
-//     user.resetOtpExpireAt = 0;
-
-//     await user.save();
-
-//     console.log("Password reset successful for:", email);
-//     return res.json({
-//       success: true,
-//       message: "Password changed successfully",
-//     });
-//   } catch (error) {
-//     console.error("Error in resetPassword:", error);
-//     return res.json({ success: false, message: error.message });
-//   }
-// };
-
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
-  console.log("📩 Received Reset Password Request:");
-  console.log("➡️ Email:", email);
-  console.log("🔢 OTP:", otp);
-  console.log("🔒 New Password:", newPassword ? "Provided" : "Not Provided");
+  console.log("request ok ");
+  console.log(" email:", email);
+  console.log("otp:", otp);
+  console.log("New Pas:", newPassword ? "Provided" : "Not Provided"); //
 
   if (!email || !otp || !newPassword) {
-    console.log("❌ Missing Required Fields!");
+    console.log(" Missing Required Fields!");
     return res.json({
       success: false,
       message: "Email, OTP, and new password are required",
@@ -489,25 +271,25 @@ export const resetPassword = async (req, res) => {
   try {
     const user = await userModel.findOne({ email });
     if (!user) {
-      console.log("❌ User not found:", email);
+      console.log(" User not found:", email);
       return res.json({ success: false, message: "User not found" });
     }
 
-    console.log("✅ User found in DB:", user.email);
-    console.log("🔎 Stored OTP:", user.resetOtp);
-    console.log("⏳ OTP Expiry Time:", new Date(user.resetOtpExpireAt));
+    console.log("User found in DB:", user.email);
+    console.log(" Stored OTP:", user.resetOtp);
+    console.log(" OTP Expiry Time:", new Date(user.resetOtpExpireAt));
 
     if (!user.resetOtp || user.resetOtp !== otp) {
-      console.log("❌ Invalid OTP:", otp, "Expected:", user.resetOtp);
+      console.log("Invalid OTP:", otp, "Expected:", user.resetOtp);
       return res.json({ success: false, message: "Invalid OTP" });
     }
 
     if (user.resetOtpExpireAt < Date.now()) {
-      console.log("❌ OTP Expired for:", email);
+      console.log("OTP Expired for:", email);
       return res.json({ success: false, message: "OTP expired" });
     }
 
-    console.log("✅ Resetting password for:", email);
+    console.log("Resetting password for:", email);
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     user.resetOtp = "";
@@ -515,13 +297,13 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    console.log("✅ Password reset successful for:", email);
+    console.log("Password reset successful for:", email);
     return res.json({
       success: true,
       message: "Password changed successfully",
     });
   } catch (error) {
-    console.error("❌ Error in resetPassword:", error);
+    console.error("Error in resetPassword:", error);
     return res.json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -556,5 +338,23 @@ export const verifyResetOtp = async (req, res) => {
   } catch (error) {
     console.error("Error in verifyOtp:", error);
     return res.json({ success: false, message: error.message });
+  }
+};
+
+//Check if email is present
+
+export const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "Email not found." });
+    }
+
+    return res.status(200).json({ exists: true });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
