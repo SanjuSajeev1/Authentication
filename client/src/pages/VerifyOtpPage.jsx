@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext } from "react";
+import React, { useRef, useState, useContext, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -13,9 +13,16 @@ const VerifyOtpPage = () => {
 
   const { backendUrl, setIsLoggedIn, getUserData } = useContext(AppContent);
 
+  useEffect(() => {
+    if (!email) {
+      navigate("/", { replace: true });
+      toast.error("Go to reset page and submit your email");
+    }
+  }, [email, navigate]);
+
   const handleInput = (e, index) => {
     const value = e.target.value;
-    if (!/^\d?$/.test(value)) return; // Allow only digits
+    if (!/^\d?$/.test(value)) return;
 
     const newOtp = [...otp];
     newOtp[index] = value;
